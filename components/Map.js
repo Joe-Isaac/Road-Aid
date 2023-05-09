@@ -1,94 +1,42 @@
-import { View, Text } from 'react-native'
-import React, { useRef, useEffect } from 'react'
-import MapView, { Marker } from 'react-native-maps';
-import tw from 'tailwind-react-native-classnames'
-import { useDispatch, useSelector } from 'react-redux';
-import { selectDestination, selectOrigin, setTravelTimeInformation } from '../slices/navSlice';
-import MapViewDirections from 'react-native-maps-directions';
-import {GOOGLE_MAPS_APIKEY} from '@env'
+import { View, Text } from "react-native";
+import MapView,{Marker} from 'react-native-maps'
 
-const Map = () => {
-    const origin = useSelector(selectOrigin);
-    const destination = useSelector(selectDestination);
-    const mapRef = useRef(null);
-    const dispatch = useDispatch();
+import React, {useState} from "react";
 
-    useEffect(() => {
-      if(!origin || !destination) return ;
-    
-
-      //Zoom and fit markers
-      mapRef.current.fitToSuppliedMarkers(["origin", "destination"], {
-        edgePadding: { top: 50, right:50, bottom: 50, left:50 },
-      });
-      
-    }, [origin, destination])
-
-    useEffect(() => {
-        if( !origin || !destination ) return;
-
-      const getTravelTime = async() => {
-        fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${origin.description}&destinations=${destination.description}&key=${GOOGLE_MAPS_APIKEY}`)
-        .then(
-            res => res.json()
-        ).then(
-            dispatch(setTravelTimeInformation(data.rows[0].elements[0]))
-        )
-      }
-
-      getTravelTime();
-    }, [origin, destination, GOOGLE_MAPS_APIKEY])
-    
-    
-
+const Map = ({coordinates}) => {
   return (
-    <MapView
-    ref={mapRef}
-    mapType='mutedStandard'
-    style={tw`flex-1`}
-        initialRegion={{
-            latitude: origin.location.lat,
-            longitude: origin.location.lng,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
+      <View
+        style={{
+          height: 300,
+          width: 400
         }}
-    >
-
-        {origin && destination && (
-            <MapViewDirections
-             origin = {origin.description}
-             destination = {destination.description}
-             apikey= {GOOGLE_MAPS_APIKEY}
-             strokeWidth={3}
-             strokeColor='black'
-            />
-        )}
-
-        {origin?.location && (
-            <Marker
-            coordinate={{
-                latitude: origin.location.lat,
-                longitude: origin.location.lng,
+      >
+        {coordinates && (
+          <MapView
+            style={{
+              flex: 1,
             }}
-            title="Origin"
-            description={origin.description}
-            identifier="origin"
-            />
-        )}
-
-        {destination?.location && (
-            <Marker
-            coordinate={{
-                latitude: destination.location.lat,
-                longitude: destination.location.lng,
+            //specify our coordinates.
+            initialRegion={{
+              latitude: coordinates.coords.latitude,
+              longitude: coordinates.coords.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0,
             }}
-            title="Destination"
-            description={destination.description}
-            identifier="destination"
+          >
+            <Marker
+              coordinate={{
+                latitude: coordinates.coords.latitude,
+                longitude: coordinates.coords.longitude,
+              }}
+              title="Origin"
+              description={"My Location"}
+              identifier="origin"
             />
+          </MapView>
         )}
-    </MapView>
-  )
-}
+      </View>
+  );
+};
 
 export default Map;
